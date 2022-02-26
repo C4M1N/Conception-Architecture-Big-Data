@@ -108,16 +108,16 @@ def display_img(spark, spark_df, img_cat, img_filename=None):
     # enregistre la table temporaire dans le catalogue pour l'utilisation de SQL dans cette session spark
     spark_df.createOrReplaceTempView("spark_df")
     # print(spark_sess.catalog.listTables())
-    
-    if img_filename == None:
+
+    if img_filename is None:
         bytes_img = spark.sql("SELECT content FROM spark_df WHERE label = '" + img_cat + "'").take(1)[0][0]
     else:
         bytes_img = spark.sql("SELECT content FROM spark_df WHERE label = '" + img_cat + "' AND path LIKE '%" + img_filename + "'").take(1)[0][0]
-        
+
     print("shape of bytes_img:", np.shape(bytes_img))
     img = Image.open(skimage.io.BytesIO(bytes_img)).resize([100, 100])
     print("PIL object: ", img)
-    
+
     return display(img)
 
 
@@ -147,10 +147,7 @@ def preprocess_img(bytes_img):
     img = Image.open(io.BytesIO(bytes_img)).resize([100, 100])
     # on transformer en array (img_to_array -> keras)
     img_arr = img_to_array(img)
-    # on préprocesse pour le traitement par batch dans le modèle (fonction keras)
-    img_prep = preprocess_input(img_arr)
-    
-    return img_prep
+    return preprocess_input(img_arr)
 
 
 # In[7]:
@@ -174,9 +171,7 @@ def ps_featurization(model, set_of_series):
     preds_ps = model.predict(input_ps)
     # on "flatten" nos images et on retransforme en pandas Series
     output_list = [pred_ps.flatten() for pred_ps in preds_ps]
-    output_ps = pd.Series(output_list)
-    
-    return output_ps
+    return pd.Series(output_list)
 
 
 # In[8]:
@@ -279,9 +274,9 @@ def load_preproc_data(df_foldername, input_dir):
 
 # Localisation: Entrées / Sorties
 bucket_name = "p8-jc-fruits"
-img_path_train = "s3a://" + bucket_name + "/images/train/"
-img_path_test = "s3a://" + bucket_name + "/images/test/"
-data_process_output = "s3a://" + bucket_name + "/data/"
+img_path_train = f"s3a://{bucket_name}/images/train/"
+img_path_test = f"s3a://{bucket_name}/images/test/"
+data_process_output = f"s3a://{bucket_name}/data/"
 
 
 # In[12]:
